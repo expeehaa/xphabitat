@@ -33,17 +33,22 @@ public class XPHabitatListener implements Listener {
 	
 	@EventHandler
 	public void onRightClickSign(PlayerInteractEvent e){
-		if(e.getMaterial().equals(Material.SIGN)){
+		if(e.getClickedBlock() == null)return;
+		
+		if(e.getClickedBlock().getType().equals(Material.SIGN_POST) || e.getClickedBlock().getType().equals(Material.WALL_SIGN)){
 			
-			Sign sign = (Sign) e.getPlayer().getWorld().getBlockAt(e.getClickedBlock().getLocation()).getState();
+			XPHabitat.instance.getLogger().info("Block at " + e.getClickedBlock().getLocation().toString());
 			
-			if(sign.getLine(0).equals("[XPH]") && sign.getLine(1).equals("Store sign")){
+			Sign sign = (Sign) e.getClickedBlock().getState();
+			
+			if(sign.getLine(0).equals("[XPH]") && sign.getLine(1).equals("Habitat sign")){
 				
 				e.setCancelled(true);
 				
 				Player p = e.getPlayer();
 				
 				if(!XPHabitat.storedxp.containsKey(p.getUniqueId())){
+					e.getPlayer().sendMessage("you have no habitat");
 					
 					//use craftconomy3, if it's enabled
 					if(XPHabitat.craftconomy != null){
@@ -57,8 +62,8 @@ public class XPHabitatListener implements Listener {
 							playeraccount.withdraw(XPHabitat.instance.getConfig().getDouble("habitat.costPerHabitat"), worldname, defaultcurrency, Cause.PAYMENT, "XPHabitat bought");
 							
 							//update database and hashmap
-							XPHabitat.storedxp.put(p.getUniqueId(), 0);
 							SQLConnecter.update("insert into 'storedxp' ('uuid','xp') values ('" + p.getUniqueId() + "', 0)");
+							XPHabitat.instance.retrieveSQLData();
 						}
 						else {
 							p.sendMessage(XPHabitat.prefix + "§4You do not have enough money to buy a XPHabitat!");
@@ -67,26 +72,28 @@ public class XPHabitatListener implements Listener {
 					}
 					else{
 						//update database and hashmap
-						XPHabitat.storedxp.put(p.getUniqueId(), 0);
-						SQLConnecter.update("insert into 'storedxp' ('uuid','xp') values ('" + p.getUniqueId() + "', 0)");
+						SQLConnecter.update("INSERT INTO `storedxp`(`uuid`, `xp`) VALUES ('" + p.getUniqueId() + "', 0)");
+						XPHabitat.instance.retrieveSQLData();
+						
+						p.sendMessage("you got a habitat");
 					}
 				}
 				
 				//store xp in habitat
 				if(e.getAction().equals(Action.LEFT_CLICK_BLOCK)){
-					if(p.getLevel() <= 0) {
+					if(p.getLevel() > 0) {
 						
 						int oldxp = p.getTotalExperience();
 						p.giveExpLevels(-1);
 						int currentxp = p.getTotalExperience();
 						int deltaxp = (int) ((oldxp - currentxp) * XPHabitat.instance.getConfig().getDouble("habitat.storeTax"));
+						p.sendMessage("old: " + oldxp + "; current: " + currentxp + "; delta: " + deltaxp);
 						
-						
-						int newStoredXP = deltaxp + XPHabitat.storedxp.get(p.getUniqueId().toString());
+						int newStoredXP = deltaxp + XPHabitat.storedxp.get(p.getUniqueId());
 						
 						//update database and hashmap
-						SQLConnecter.update("update `storedxp` set `uuid`='" + p.getUniqueId().toString() + "', `xp`=" + newStoredXP + " where `uuid`='" + p.getUniqueId().toString() + "'");
-						XPHabitat.storedxp.put(p.getUniqueId(), Integer.valueOf(newStoredXP));
+						SQLConnecter.update("UPDATE `storedxp` SET `uuid`='" + p.getUniqueId().toString() + "', `xp`=" + newStoredXP + " WHERE `uuid`='" + p.getUniqueId().toString() + "'");
+						XPHabitat.instance.retrieveSQLData();
 						
 						p.sendMessage(XPHabitat.prefix + ChatColor.GREEN + "You stored " + deltaxp + "XP in your deposit. You now have " + newStoredXP + "XP inside.");
 						return;
@@ -97,7 +104,7 @@ public class XPHabitatListener implements Listener {
 				}
 				//retrieve xp from habitat
 				else if(e.getAction().equals(Action.RIGHT_CLICK_BLOCK)){
-					int storedXp = XPHabitat.storedxp.get(p.getUniqueId().toString());
+					int storedXp = XPHabitat.storedxp.get(p.getUniqueId());
 					int drainedXp = 0;
 					
 					if(storedXp > 0){
@@ -114,8 +121,8 @@ public class XPHabitatListener implements Listener {
 						}
 						
 						//update database and hashmap
-						SQLConnecter.update("update `storedxp` set `uuid`='" + p.getUniqueId().toString() + "', `xp`=" + storedXp + " where `uuid`='" + p.getUniqueId().toString() + "'");
-						XPHabitat.storedxp.put(p.getUniqueId(), Integer.valueOf(storedXp));
+						SQLConnecter.update("UPDATE `storedxp` SET `uuid`='" + p.getUniqueId().toString() + "', `xp`=" + storedXp + " WHERE `uuid`='" + p.getUniqueId().toString() + "'");
+						XPHabitat.instance.retrieveSQLData();
 						
 						p.sendMessage(XPHabitat.prefix + ChatColor.GREEN + "You drained " + drainedXp + "XP from your deposit. You now have " + storedXp + "XP inside.");
 						return;

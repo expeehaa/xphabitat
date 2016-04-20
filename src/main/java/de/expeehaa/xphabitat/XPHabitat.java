@@ -2,9 +2,8 @@ package de.expeehaa.xphabitat;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -27,7 +26,7 @@ public class XPHabitat extends JavaPlugin {
 	
 	public static HashMap<UUID, Integer> storedxp = new HashMap<UUID, Integer>();
 	
-	@SuppressWarnings("deprecation")
+	
 	@Override
 	public void onEnable() {
 		instance = this;
@@ -41,7 +40,7 @@ public class XPHabitat extends JavaPlugin {
 			this.getLogger().info(prefix + "XPHabitat is disabled now!");
 			return;
 		}
-		SQLConnecter.update("create table if not exists storedxp (uuid varchar(100) primary key unique, xp int(255))");
+		SQLConnecter.update("CREATE TABLE IF NOT EXISTS `storedxp` ( `uuid` VARCHAR(100) NOT NULL PRIMARY KEY UNIQUE , `xp` INT(255) NOT NULL )");
 		
 		Plugin plugin = this.getServer().getPluginManager().getPlugin("Craftconomy3");
 		if(plugin != null){
@@ -50,7 +49,7 @@ public class XPHabitat extends JavaPlugin {
 		this.getLogger().info("Craftconomy3 " + (plugin != null ? "" : "not") + " found!");
 		
 		
-		Bukkit.getScheduler().scheduleAsyncRepeatingTask(this, new Runnable() {
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 			
 			public void run() {
 				XPHabitat.instance.retrieveSQLData();
@@ -117,27 +116,28 @@ public class XPHabitat extends JavaPlugin {
 			return;
 		}
 		
-		List<UUID> uuidlist = new ArrayList<UUID>();
-		List<Integer> storedXPList = new ArrayList<Integer>();
 		HashMap<UUID, Integer> storemap = new HashMap<UUID, Integer>();
 
-		int i = 1;
 		try {
+			int col1 = rs.findColumn("uuid");
+			int col2 = rs.findColumn("xp");
 			while(rs.next()){
-				String s;
-				s = rs.getObject(0, String.class);
-				uuidlist.add(UUID.fromString(s));
-				s = rs.getObject(1, String.class);
-				storedXPList.add(Integer.parseInt(s));
-				i++;
+				String uuidstring = rs.getString(col1);
+				int xp = rs.getInt(col2);
+				storemap.put(UUID.fromString(uuidstring), Integer.valueOf(xp));
 			}
 		} catch (SQLException e) {
 			this.getLogger().info("SQLException: " + e.getMessage());
 		}
 		
-		for (i = 0; i < uuidlist.size(); i++) {
-			storemap.put(uuidlist.get(i), storedXPList.get(i));
+		this.getLogger().info("got new SQL data with " + storemap.size() + " objects");
+		
+		String map = "";
+		for (Entry<UUID, Integer> entry : storemap.entrySet()) {
+			map += "\n" + entry.getKey().toString() + " | " + entry.getValue().toString();
 		}
+		
+		this.getLogger().info(map);
 		
 		storedxp = storemap;
 	}
