@@ -1,0 +1,20 @@
+name: XPHabitat
+main: de.expeehaa.xphabitat.XPHabitat
+version: 1.0
+author: expeehaa
+prefix: XPH
+softdepends: [Craftconomy3]
+commands:
+  xphcfg:
+    description: Reloads the config of XPHabitat
+permissions:
+  xphabitat.*:
+    description: Full control
+    children:
+      xphabitat.creatHabitatSigns: true
+  xphabitat.createHabitatSigns:
+    description: You can create signs for XP habitats.
+    default: op
+  xphabitat.reloadConfig:
+    description: Permission to reload the config with /xphcfg
+    default: op
