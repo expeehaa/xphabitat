@@ -81,15 +81,16 @@ public class XPHabitatListener implements Listener {
 				
 				//store xp in habitat
 				if(e.getAction().equals(Action.LEFT_CLICK_BLOCK)){
-					if(p.getLevel() > 0) {
+					if(p.getExp() > 0 || p.getLevel() > 0) {
 						
-						int oldxp = p.getTotalExperience();
-						p.giveExpLevels(-1);
-						int currentxp = p.getTotalExperience();
-						int deltaxp = (int) ((oldxp - currentxp) * XPHabitat.instance.getConfig().getDouble("habitat.storeTax"));
-						p.sendMessage("old: " + oldxp + "; current: " + currentxp + "; delta: " + deltaxp);
+						int xp = (int) ((100/(1-p.getExp())) * p.getExpToLevel());
+						p.giveExp(-xp);
+						int deltaxp = (int) (xp * XPHabitat.instance.getConfig().getDouble("habitat.storeTax"));
+						p.sendMessage("xp: " + xp + "; delta: " + deltaxp);
 						
 						int newStoredXP = deltaxp + XPHabitat.storedxp.get(p.getUniqueId());
+						
+						
 						
 						//update database and hashmap
 						SQLConnecter.update("UPDATE `storedxp` SET `uuid`='" + p.getUniqueId().toString() + "', `xp`=" + newStoredXP + " WHERE `uuid`='" + p.getUniqueId().toString() + "'");
