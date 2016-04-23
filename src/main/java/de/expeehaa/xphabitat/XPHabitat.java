@@ -24,7 +24,7 @@ public class XPHabitat extends JavaPlugin {
 	
 	public static Common craftconomy;
 	
-	public static HashMap<UUID, Integer> storedxp = new HashMap<UUID, Integer>();
+	public static HashMap<UUID, Float> storedxp = new HashMap<UUID, Float>();
 	
 	
 	@Override
@@ -40,7 +40,7 @@ public class XPHabitat extends JavaPlugin {
 			this.getLogger().info(prefix + "XPHabitat is disabled now!");
 			return;
 		}
-		SQLConnecter.update("CREATE TABLE IF NOT EXISTS `storedxp` ( `uuid` VARCHAR(100) NOT NULL PRIMARY KEY UNIQUE , `xp` INT(255) NOT NULL )");
+		SQLConnecter.update("CREATE TABLE IF NOT EXISTS `storedxp` ( `uuid` VARCHAR(100) NOT NULL PRIMARY KEY, `xp` FLOAT(255,10) NOT NULL )");
 		
 		Plugin plugin = this.getServer().getPluginManager().getPlugin("Craftconomy3");
 		if(plugin != null){
@@ -67,7 +67,7 @@ public class XPHabitat extends JavaPlugin {
 	void reloadCfg(){
 		this.reloadConfig();
 		
-		this.getConfig().addDefault("habitat.storeTax", "0.6");
+		this.getConfig().addDefault("habitat.storeTax", 0.6);
 		this.getConfig().addDefault("habitat.costPerHabitat", "5000");
 		this.getConfig().addDefault("db.host", "");
 		this.getConfig().addDefault("db.port", "3306");
@@ -116,7 +116,7 @@ public class XPHabitat extends JavaPlugin {
 			return;
 		}
 		
-		HashMap<UUID, Integer> storemap = new HashMap<UUID, Integer>();
+		HashMap<UUID, Float> storemap = new HashMap<UUID, Float>();
 
 		try {
 			int col1 = rs.findColumn("uuid");
@@ -124,7 +124,7 @@ public class XPHabitat extends JavaPlugin {
 			while(rs.next()){
 				String uuidstring = rs.getString(col1);
 				int xp = rs.getInt(col2);
-				storemap.put(UUID.fromString(uuidstring), Integer.valueOf(xp));
+				storemap.put(UUID.fromString(uuidstring), Float.valueOf(xp));
 			}
 		} catch (SQLException e) {
 			this.getLogger().info("SQLException: " + e.getMessage());
@@ -133,7 +133,7 @@ public class XPHabitat extends JavaPlugin {
 		this.getLogger().info("got new SQL data with " + storemap.size() + " objects");
 		
 		String map = "";
-		for (Entry<UUID, Integer> entry : storemap.entrySet()) {
+		for (Entry<UUID, Float> entry : storemap.entrySet()) {
 			map += "\n" + entry.getKey().toString() + " | " + entry.getValue().toString();
 		}
 		

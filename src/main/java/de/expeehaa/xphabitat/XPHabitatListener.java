@@ -48,7 +48,7 @@ public class XPHabitatListener implements Listener {
 				Player p = e.getPlayer();
 				
 				if(!XPHabitat.storedxp.containsKey(p.getUniqueId())){
-					e.getPlayer().sendMessage("you have no habitat");
+					e.getPlayer().sendMessage("You have no habitat");
 					
 					//use craftconomy3, if it's enabled
 					if(XPHabitat.craftconomy != null){
@@ -75,7 +75,7 @@ public class XPHabitatListener implements Listener {
 						SQLConnecter.update("INSERT INTO `storedxp`(`uuid`, `xp`) VALUES ('" + p.getUniqueId() + "', 0)");
 						XPHabitat.instance.retrieveSQLData();
 						
-						p.sendMessage("you got a habitat");
+						p.sendMessage("You got an habitat");
 					}
 				}
 				
@@ -83,12 +83,15 @@ public class XPHabitatListener implements Listener {
 				if(e.getAction().equals(Action.LEFT_CLICK_BLOCK)){
 					if(p.getExp() > 0 || p.getLevel() > 0) {
 						
-						int xp = (int) ((100/(1-p.getExp())) * p.getExpToLevel());
-						p.giveExp(-xp);
-						int deltaxp = (int) (xp * XPHabitat.instance.getConfig().getDouble("habitat.storeTax"));
-						p.sendMessage("xp: " + xp + "; delta: " + deltaxp);
+						float relativeXP = p.getExp();
+						int delta = maxXPinBar(p.getLevel());
 						
-						int newStoredXP = deltaxp + XPHabitat.storedxp.get(p.getUniqueId());
+						int xp = (int) (relativeXP * delta);
+						p.giveExp(-xp);
+						float taxxp = (float) (xp * XPHabitat.instance.getConfig().getDouble("habitat.storeTax"));
+						p.sendMessage("xp: " + xp + "; taxxp: " + taxxp + "; relativeXP: " + relativeXP + "; delta: " + delta + "; storeTax: " + XPHabitat.instance.getConfig().getDouble("habitat.storeTax"));
+						
+						float newStoredXP = taxxp + XPHabitat.storedxp.get(p.getUniqueId());
 						
 						
 						
@@ -96,7 +99,7 @@ public class XPHabitatListener implements Listener {
 						SQLConnecter.update("UPDATE `storedxp` SET `uuid`='" + p.getUniqueId().toString() + "', `xp`=" + newStoredXP + " WHERE `uuid`='" + p.getUniqueId().toString() + "'");
 						XPHabitat.instance.retrieveSQLData();
 						
-						p.sendMessage(XPHabitat.prefix + ChatColor.GREEN + "You stored " + deltaxp + "XP in your deposit. You now have " + newStoredXP + "XP inside.");
+						p.sendMessage(XPHabitat.prefix + ChatColor.GREEN + "You stored " + taxxp + "XP in your deposit. You now have " + newStoredXP + "XP inside.");
 						return;
 					}
 					else{
@@ -105,18 +108,19 @@ public class XPHabitatListener implements Listener {
 				}
 				//retrieve xp from habitat
 				else if(e.getAction().equals(Action.RIGHT_CLICK_BLOCK)){
-					int storedXp = XPHabitat.storedxp.get(p.getUniqueId());
+					
+					float storedXp = XPHabitat.storedxp.get(p.getUniqueId()) == null ? 0 : XPHabitat.storedxp.get(p.getUniqueId());
 					int drainedXp = 0;
 					
 					if(storedXp > 0){
 						
-						if(storedXp >= p.getExpToLevel()){
-							drainedXp = p.getExpToLevel();
+						if(storedXp >= (1-p.getExp()) * maxXPinBar(p.getLevel())){
+							drainedXp = (int) ((1-p.getExp()) * maxXPinBar(p.getLevel()));
 							p.giveExp(drainedXp);
 							storedXp -= drainedXp;
 						}
 						else {
-							drainedXp = storedXp;
+							drainedXp = (int) storedXp;
 							p.giveExp(drainedXp);
 							storedXp = 0;
 						}
@@ -135,5 +139,9 @@ public class XPHabitatListener implements Listener {
 				}
 			}
 		}
+	}
+
+	public int maxXPinBar(int level){
+		return level >= 30 ? 62 + (level - 30) * 7 : (level >= 15 ? 17 + (level - 15) * 3 : 17);
 	}
 }
