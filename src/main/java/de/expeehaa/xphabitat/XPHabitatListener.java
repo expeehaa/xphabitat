@@ -81,12 +81,18 @@ public class XPHabitatListener implements Listener {
 				
 				//store xp in habitat
 				if(e.getAction().equals(Action.LEFT_CLICK_BLOCK)){
-					if(p.getExp() > 0 || p.getLevel() > 0) {
+					if(p.getLevel() > 0 && p.getExp() >= 0) {
 						
 						float relativeXP = p.getExp();
 						int delta = maxXPinBar(p.getLevel());
 						
 						int xp = (int) (relativeXP * delta);
+						
+						if(xp <= 0){
+							xp = maxXPinBar(p.getLevel() - 1);
+							p.giveExpLevels(-1);
+						}
+						
 						p.giveExp(-xp);
 						float taxxp = (float) (xp * XPHabitat.instance.getConfig().getDouble("habitat.storeTax"));
 						p.sendMessage("xp: " + xp + "; taxxp: " + taxxp + "; relativeXP: " + relativeXP + "; delta: " + delta + "; storeTax: " + XPHabitat.instance.getConfig().getDouble("habitat.storeTax"));
@@ -110,18 +116,18 @@ public class XPHabitatListener implements Listener {
 				else if(e.getAction().equals(Action.RIGHT_CLICK_BLOCK)){
 					
 					float storedXp = XPHabitat.storedxp.get(p.getUniqueId()) == null ? 0 : XPHabitat.storedxp.get(p.getUniqueId());
-					int drainedXp = 0;
+					float drainedXp = 0;
 					
 					if(storedXp > 0){
 						
 						if(storedXp >= (1-p.getExp()) * maxXPinBar(p.getLevel())){
-							drainedXp = (int) ((1-p.getExp()) * maxXPinBar(p.getLevel()));
-							p.giveExp(drainedXp);
+							drainedXp = ((1-p.getExp()) * maxXPinBar(p.getLevel()));
+							p.giveExp((int)drainedXp);
 							storedXp -= drainedXp;
 						}
 						else {
-							drainedXp = (int) storedXp;
-							p.giveExp(drainedXp);
+							drainedXp = storedXp;
+							p.giveExp((int)drainedXp);
 							storedXp = 0;
 						}
 						
@@ -142,6 +148,6 @@ public class XPHabitatListener implements Listener {
 	}
 
 	public int maxXPinBar(int level){
-		return level >= 30 ? 62 + (level - 30) * 7 : (level >= 15 ? 17 + (level - 15) * 3 : 17);
+		return level >= 30 ? 62 + (level - 30) * 7 : (level >= 15 ? 17 + (level - 15) * 3 : 2 * level + 5);
 	}
 }
