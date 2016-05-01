@@ -5,16 +5,17 @@ author: expeehaa
 prefix: XPH
 softdepends: [Craftconomy3]
 commands:
-  xphcfg:
-    description: Reloads the config of XPHabitat
+  xph:
+    description: Do all the stuff of XPHabitat with commands!
 permissions:
   xphabitat.*:
     description: Full control
     children:
       xphabitat.creatHabitatSigns: true
+      xphabitat.reloadConfig: true
   xphabitat.createHabitatSigns:
-    description: You can create signs for XP habitats.
+    description: You can create and destroy signs for XP habitats.
     default: op
   xphabitat.reloadConfig:
-    description: Permission to reload the config with /xphcfg
+    description: Permission to reload the config with '/xph cfg'
     default: op

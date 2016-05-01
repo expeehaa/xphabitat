@@ -8,13 +8,13 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.greatmancode.craftconomy3.Common;
 import com.greatmancode.craftconomy3.tools.interfaces.Loader;
+
+import de.expeehaa.xphabitat.commands.CommandXPH;
 
 public class XPHabitat extends JavaPlugin {
 
@@ -57,6 +57,7 @@ public class XPHabitat extends JavaPlugin {
 		}, 0, 6000);
 		
 		this.getServer().getPluginManager().registerEvents(new XPHabitatListener(), this);
+		this.getCommand("xph").setExecutor(new CommandXPH());
 	}
 	
 	@Override
@@ -64,7 +65,7 @@ public class XPHabitat extends JavaPlugin {
 		SQLConnecter.disconnect();
 	}
 	
-	void reloadCfg(){
+	public void reloadCfg(){
 		this.reloadConfig();
 		
 		this.getConfig().addDefault("habitat.storeTax", 0.6);
@@ -81,21 +82,6 @@ public class XPHabitat extends JavaPlugin {
 		this.reloadConfig();
 		
 		this.getLogger().info("Config successfully reloaded!");
-	}
-	
-	@Override
-	public boolean onCommand(CommandSender sender, Command cmd, String lbl, String[] args) {
-		
-		if(cmd.getName().equalsIgnoreCase("xphcfg")){
-			if(sender.hasPermission("xphabitat.reloadConfig")){
-				this.reloadCfg();
-				sender.sendMessage(prefix + ChatColor.GREEN + "Config successfully reloaded!");
-				
-				return true;
-			}
-		}
-		
-		return false;
 	}
 	
 	public void setSQLConnecterData(){
