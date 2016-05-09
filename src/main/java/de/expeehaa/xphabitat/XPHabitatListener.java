@@ -94,17 +94,15 @@ public class XPHabitatListener implements Listener {
 					float xp = 0;
 					
 					if(p.getExp() > 0) {
-						int maxXP = maxXPinBar(p.getLevel() + 1);
+						int maxXP = maxXPinBar(p.getLevel()+1);
 						
-						xp = maxXP - p.getExpToLevel();
-						if(xp < 0){
-							p.setExp(0);
-							xp = maxXP - p.getExpToLevel();
-						}
+						xp = maxXP * p.getExp();						
+						p.sendMessage(maxXP + "; " + xp + "; " + p.getExpToLevel() + "; " + p.getExp());
+						
 						p.giveExp((int) -xp);
 					}
 					else if(p.getLevel() > 0){
-						xp = maxXPinBar(p.getLevel() - 1);
+						xp = maxXPinBar(p.getLevel());
 						p.setLevel(p.getLevel() - 1);
 					}
 					else{
@@ -161,6 +159,6 @@ public class XPHabitatListener implements Listener {
 	
 
 	public int maxXPinBar(int level){
-		return level >= 30 ? 62 + (level - 30) * 7 : (level >= 15 ? 17 + (level - 15) * 3 : 2 * level + 5);
+		return level > 30 ? 103 + (level - 30) * 9 : (level > 15 ? 32 + (level - 15) * 5 : 2 * level + 5);
 	}
 }
